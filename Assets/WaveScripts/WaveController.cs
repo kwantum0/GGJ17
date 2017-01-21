@@ -5,14 +5,16 @@ using UnityEngine;
 public class WaveController : MonoBehaviour {
 
 	private LineRenderer line;
+	private List<GameObject> colliders;
 	private List<Vector3> points;
-	private MeshCollider collider;
 	private Vector3 start;
 	private Vector3 end;
 	private float totalDistance;
 	private float radianDistance;
 	private float segmentDistance;
+	private float strokeWidth;
 
+	public float colliderOffset = 0.1f;
 	public float frequencyLeft = 1f;
 	public float frequencyRight = 1f;
 	public GameObject startPosition;
@@ -23,14 +25,16 @@ public class WaveController : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		line = GetComponent<LineRenderer> ();
-		collider = GetComponent<MeshCollider> ();
+		strokeWidth = line.startWidth;
+		colliders = new List<GameObject>();
 		points = new List<Vector3> ();
-		start = new Vector3 (startPosition.transform.position.x, 0, startPosition.transform.position.z);
-		end = new Vector3 (endPosition.transform.position.x, 0, endPosition.transform.position.z);
+		start = new Vector3 (startPosition.transform.position.x, startPosition.transform.position.y, 0);
+		end = new Vector3 (endPosition.transform.position.x, endPosition.transform.position.y, 0);
 		totalDistance = Vector3.Distance (start, end);
 		segmentDistance = totalDistance / segments;
 		radianDistance = (2 * Mathf.PI) / totalDistance;
-			
+
+		// CREATE THE LINE
 		points.Add (start);
 		Vector3 cpoint = start;
 		for (int i = 1; i < segments; i++) {
@@ -40,15 +44,48 @@ public class WaveController : MonoBehaviour {
 		points.Add (end);
 		line.numPositions = points.Count;
 		line.SetPositions(points.ToArray());
+
+		// CREATE THE BOX COLLIDERS
+		for (int i = 1; i < points.Count; i++) {
+			GameObject newObject = new GameObject ("collider" + i.ToString());
+			newObject.AddComponent<BoxCollider2D> ();
+			colliders.Add (newObject);
+		}
 	}
 	
 	// Update is called once per frame
 	void FixedUpdate () {
+
+
+		// UPDATE THE LINE
 		for (int i = 0; i < points.Count; i++) {
 			Vector3 point = points[i];
-			point.z = Mathf.Sin(frequencyLeft*(Time.fixedTime * speed + radianDistance * point.x));
+			point.y = CalcRightWave(point.x) + CalcLeftWave(point.x);
 			points [i] = point;
 		}
 		line.SetPositions (points.ToArray ());
+
+
+
+
+		// UPDATE THE BOX COLLIDERS - COMPLETE
+		for (int i = 1; i < points.Count; i++) {
+			BoxCollider2D current = colliders[i - 1].GetComponent<BoxCollider2D>();
+			Vector3 point1 = points [i - 1];
+			Vector3 point2 = points [i];
+			current.size = new Vector2 (Vector3.Distance(point1, point2) + colliderOffset, strokeWidth + colliderOffset);
+			current.transform.position = Vector3.Lerp (point1, point2, 0.5f);
+			Vector3 direction = point1 - point2;
+			float angle = Mathf.Atan2 (direction.y, direction.x) * Mathf.Rad2Deg;
+			current.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+		}
 	}
+
+	private float CalcRightWave(float x){
+		return Mathf.Sin(frequencyRight*(Time.fixedTime * speed + radianDistance * x));
+	}
+	private float CalcLeftWave(float x){
+		return Mathf.Sin(frequencyLeft*(-Time.fixedTime * speed + radianDistance * x));
+	}
+		
 }
