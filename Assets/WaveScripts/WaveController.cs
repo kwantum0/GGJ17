@@ -14,6 +14,8 @@ public class WaveController : MonoBehaviour {
 	private float segmentDistance;
 	private float strokeWidth;
 
+	public AnimationCurve alwaysBevel;
+
 	[Range(-0.5f,0.5f)]
 	public float colliderOffset = 0.1f;
 	[Range(2f,10f)]
@@ -59,15 +61,16 @@ public class WaveController : MonoBehaviour {
 			colliders.Add (newObject);
 		}
 	}
-	
+
 	// Update is called once per frame
 	void FixedUpdate () {
 
 
 		// UPDATE THE LINE
-		for (int i = 1; i < points.Count-1; i++) {
+		for (int i = 0; i < points.Count; i++) {
+			float bevel = alwaysBevel.Evaluate ((float)i / (float)points.Count);
 			Vector3 point = points[i];
-			point.y = amplitude * (CalcRightWave(point.x * radianDistance) + CalcLeftWave(point.x * radianDistance));
+			point.y = amplitude * bevel * (CalcRightWave(point.x * radianDistance) + CalcLeftWave(point.x * radianDistance));
 			points [i] = point;
 		}
 		line.SetPositions (points.ToArray ());
