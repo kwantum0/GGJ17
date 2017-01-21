@@ -14,12 +14,19 @@ public class WaveController : MonoBehaviour {
 	private float segmentDistance;
 	private float strokeWidth;
 
+	[Range(-0.5f,0.5f)]
 	public float colliderOffset = 0.1f;
-	public float frequencyLeft = 1f;
-	public float frequencyRight = 1f;
+	[Range(2f,10f)]
+	public float frequencyLeft = 2f;
+	[Range(2f,10f)]
+	public float frequencyRight = 2f;
+	[Range(0f,4f)]
+	public float amplitude = 1;
 	public GameObject startPosition;
 	public GameObject endPosition;
+	[Range(0f,10f)]
 	public float speed;
+	[Range(0,400)]
 	public int segments;
 
 	// Use this for initialization
@@ -58,9 +65,9 @@ public class WaveController : MonoBehaviour {
 
 
 		// UPDATE THE LINE
-		for (int i = 0; i < points.Count; i++) {
+		for (int i = 1; i < points.Count-1; i++) {
 			Vector3 point = points[i];
-			point.y = CalcRightWave(point.x) + CalcLeftWave(point.x);
+			point.y = amplitude * (CalcRightWave(point.x * radianDistance) + CalcLeftWave(point.x * radianDistance));
 			points [i] = point;
 		}
 		line.SetPositions (points.ToArray ());
@@ -81,11 +88,12 @@ public class WaveController : MonoBehaviour {
 		}
 	}
 
+	// ALL THE MATH!
 	private float CalcRightWave(float x){
-		return Mathf.Sin(frequencyRight*(Time.fixedTime * speed + radianDistance * x));
+		return Mathf.Sin(frequencyRight*(x - Mathf.PI) + Time.fixedTime * speed);
 	}
 	private float CalcLeftWave(float x){
-		return Mathf.Sin(frequencyLeft*(-Time.fixedTime * speed + radianDistance * x));
+		return Mathf.Sin(frequencyLeft*(x + Mathf.PI) - Time.fixedTime * speed);
 	}
 		
 }
