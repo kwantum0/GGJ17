@@ -9,7 +9,7 @@ public class PlayerController : MonoBehaviour {
 	[Range(0,9)]
 	public const int DEFAULT_START_ENERGY = 0;
 	[Range(0f,1f)]
-	public const float DEFAULT_START_FREQUENCY = 0.4f;
+	public const float DEFAULT_START_FREQUENCY = 0f;
 	[Range(0f,1f)]
 	public const float FREQUENCY_STEP = 0.2f;
 	[Range(0f,3f)]
